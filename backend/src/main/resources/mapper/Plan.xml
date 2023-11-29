@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trip.plan.mapper.PlanMapper">
+
+	<resultMap type="PlanDto" id="planDtoSimple">
+		<result column="plan_no" property="planNo" />
+		<result column="plan_title" property="planTitle" />
+		<result column="plan_time" property="planTime" />
+		<association property="planUser" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+			<result column="user_nickname" property="userNickname" />
+		</association>
+	</resultMap>
+
+	<resultMap type="PlanDto" id="planDtoDetail">
+		<result column="plan_no" property="planNo" />
+		<result column="plan_title" property="planTitle" />
+		<result column="plan_time" property="planTime" />
+		<result column="plan_content" property="planContent" />
+		<result column="plan_start_date" property="planStartDate" />
+		<result column="plan_end_date" property="planEndDate" />
+		<association property="planUser" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+			<result column="user_nickname" property="userNickname" />
+		</association>
+		<collection property="planPlaces"
+			column="{planNo = plan_no}" select="planPlaceList" javaType="List"
+			ofType="PlanPlaceDto" />
+	</resultMap>
+
+	<resultMap type="PlanPlaceDto" id="placeList">
+		<result column="plan_no" property="planNo" />
+		<result column="contentid" property="contentid" />
+		<result column="plan_day" property="planDay" />
+	</resultMap>
+
+	<select id="planList" parameterType="int"
+		resultMap="planDtoSimple">
+		select
+		plan_no,
+		plan_title,
+		plan_time,
+		user.user_no,
+		user_id,
+		user_name,
+		user_profile,
+		user_nickname
+		from
+		plan
+		inner join
+		user
+		on
+		plan.user_no = user.user_no
+		where
+		plan.user_no = #{userNo}
+	</select>
+
+	<insert id="planAdd" parameterType="planDto"
+		useGeneratedKeys="true" keyProperty="planNo">
+		insert into
+		plan (user_no, plan_title)
+		values
+		(#{planUser.userNo}, #{planTitle});
+	</insert>
+
+	<insert id="planDetailAdd" parameterType="planDto">
+		insert into
+		plan_detail (plan_no, plan_start_date, plan_end_date, plan_content)
+		values
+		(#{planNo}, #{planStartDate}, #{planEndDate}, #{planContent})
+	</insert>
+
+	<insert id="planPlaceListAdd" parameterType="List">
+		insert into
+		plan_place_list (plan_no, contentid, plan_day)
+		values
+		<foreach collection="list" item="item" separator=" ,">
+			(#{item.planNo}, #{item.contentid}, #{item.planDay})
+		</foreach>
+	</insert>
+
+	<delete id="planDelete" parameterType="int">
+		delete from
+		plan
+		where
+		plan_no = #{planNo};
+	</delete>
+
+	<delete id="planDeleteDetail" parameterType="int">
+		delete from
+		plan_place_list
+		where
+		plan_no = #{planNo} and
+		contentid = #{contentId}
+	</delete>
+
+
+	<update id="planModify" parameterType="planDto">
+		update
+		plan
+		set
+		plan_title = #{planTitle}
+		where
+		plan_no = #{planNo};
+
+		update
+		plan_detail
+		set
+		plan_start_date = #{planStartDate},
+		plan_end_date = #{planEndDate},
+		plan_content = #{planContent}
+		where
+		plan_no = #{planNo};
+
+		delete from
+		plan_place_list
+		where
+		plan_no = #{planNo};
+
+		<if test="planPlaces != null and planPlaces.size() != 0">
+			insert into
+			plan_place_list (plan_no, contentid, day)
+			values
+			<foreach collection="list" item="item" separator=" , ">
+				(#{plan_no}, #{item.contentid}, #{item.day})
+			</foreach>
+		</if>
+	</update>
+
+	<select id="planDetail" parameterType="int"
+		resultMap="planDtoDetail">
+		select
+		plan.plan_no,
+		plan_title,
+		plan_time,
+		plan_content,
+		plan_start_date,
+		plan_end_date,
+		user.user_no,
+		user_id,
+		user_name,
+		user_profile,
+		user_nickname
+		from
+		plan
+		inner join
+		user
+		on
+		plan.user_no = user.user_no
+		inner join
+		plan_detail
+		on
+		plan.plan_no = plan_detail.plan_no
+		where
+		plan.plan_no = #{planNo};
+	</select>
+
+	<select id="planPlaceList" resultMap="placeList">
+		select
+		plan_no,
+		contentid,
+		plan_day
+		from
+		plan_place_list
+		where
+		plan_no = #{planNo}
+	</select>
+</mapper>

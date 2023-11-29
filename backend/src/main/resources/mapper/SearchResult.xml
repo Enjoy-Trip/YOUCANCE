@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trip.searchResult.mapper.SearchResultMapper">
+	<resultMap type="SearchResultDto" id="searchResult">
+		<result column="search_word" property="word" />
+		<result column="search_count" property="count" />
+	</resultMap>
+	
+	<select id="getSearchResultList" resultMap="searchResult">
+		select 
+			search_word,
+			search_count
+		from 
+			search_result
+	</select>
+	
+	<select id="getSearchResultCount" parameterType="String" resultType="Integer">
+		select
+			search_count
+		from 
+			search_result
+		where
+			search_word = #{word}
+	</select>
+	
+	<update id="updateCount" parameterType="map">
+		<if test="count == null or count == '' or count == 'null'">
+			insert into
+				search_result (search_word)
+			values
+				(#{word});
+		</if>
+	
+		update
+			search_result
+		set
+			search_count = search_count + 1
+		where
+			search_word = #{word}
+	</update>
+	
+	<delete id="deleteSearchResult">
+		delete from
+			search_result
+	</delete>
+</mapper>

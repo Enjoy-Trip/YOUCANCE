@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trip.board.mapper.BoardMapper">
+	<resultMap type="boardDto" id="boardSimple">
+		<result column="board_no" property="boardNo" />
+		<result column="board_title" property="boardTitle" />
+		<result column="board_time" property="boardTime" />
+		<association property="boardUser" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+			<result column="user_nickname" property="userNickname" />
+		</association>
+		<collection property="boardImages"
+			column="{boardNo = board_no}" select="getImageList" javaType="List"
+			ofType="String" />
+	</resultMap>
+
+	<resultMap type="boardDto" id="boardDetail">
+		<result column="board_no" property="boardNo" />
+		<result column="board_title" property="boardTitle" />
+		<result column="board_time" property="boardTime" />
+		<result column="board_content" property="boardContent" />
+		<association property="boardUser" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+			<result column="user_nickname" property="userNickname" />
+		</association>
+		<collection property="boardImages"
+			column="{boardNo = board_no}" select="getImageList" javaType="List"
+			ofType="String" />
+		<collection property="boardCommentList"
+			column="{boardNo = board_no}" select="getCommentList" javaType="List"
+			ofType="comment" />
+	</resultMap>
+
+	<resultMap type="boardCommentDto" id="comment">
+		<result column="board_comment_no" property="boardCommentNo" />
+		<result column="board_no" property="boardNo" />
+		<result column="board_comment_content"
+			property="boardCommentContent" />
+		<result column="board_comment_time" property="boardCommentTime" />
+		<association property="boardCommentUser"
+			javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+			<result column="user_nickname" property="userNickname" />
+		</association>
+	</resultMap>
+
+	<select id="boardList" resultMap="boardSimple">
+		select
+		board_no,
+		board_title,
+		board_time,
+		user.user_no,
+		user_id,
+		user_name,
+		user_profile,
+		user_nickname
+		from
+		board
+		inner
+		join
+		user
+		on
+		board.user_no = user.user_no
+		order by
+		board_time
+	</select>
+
+	<select id="boardDetail" resultMap="boardDetail">
+		select
+		board.board_no,
+		board_title,
+		board_time,
+		user.user_no,
+		user_id,
+		user_name,
+		user_profile,
+		user_nickname,
+		board_content
+		from
+		board
+		inner join
+		user
+		on
+		board.user_no =
+		user.user_no
+		left outer join
+		board_detail
+		on
+		board.board_no =
+		board_detail.board_no
+		where
+		board.board_no = #{boardNo}
+	</select>
+
+	<select id="getCommentList" resultMap="comment">
+		select
+		board_comment_no,
+		board_no,
+		board_comment_content,
+		board_comment_time,
+		user.user_no,
+		user_id,
+		user_name,
+		user_profile,
+		user_nickname
+		from
+		board_comment
+		inner
+		join
+		user
+		on
+		board_comment.user_no = user.user_no
+		where
+		board_no =
+		#{boardNo}
+		order by
+		board_comment_time
+	</select>
+
+	<select id="getComment" parameterType="int" resultMap="comment">
+		select
+		board_comment_no,
+		board_no,
+		board_comment_content,
+		board_comment_time,
+		user.user_no,
+		user_id,
+		user_name,
+		user_profile,
+		user_nickname
+		from
+		board_comment
+		inner join
+		user
+		on
+		board_comment.user_no = user.user_no
+		where
+		board_comment_no =
+		#{boardCommentNo}
+	</select>
+
+	<select id="getImageList" resultType="String">
+		select
+		board_image
+		from
+		board_image
+		where
+		board_no = #{boardNo}
+	</select>
+
+	<insert id="write" parameterType="boardDto"
+		useGeneratedKeys="true" keyProperty="boardNo">
+		insert into
+		board (user_no,
+		board_title)
+		values
+		(#{boardUser.userNo}, #{boardTitle})
+	</insert>
+
+	<insert id="writeDetail" parameterType="boardDto">
+		insert into
+		board_detail
+		(board_no, board_content)
+		values
+		(#{boardNo}, #{boardContent})
+	</insert>
+
+	<insert id="writeImages" parameterType="boardDto">
+		insert into
+		board_image (board_no, board_image)
+		values
+		<foreach collection="boardImages" item="item" separator=" , ">
+			(#{boardNo}, #{item})
+		</foreach>
+	</insert>
+
+	<insert id="writeComment" parameterType="boardCommentDto">
+		insert into
+		board_comment (user_no, board_no, board_comment_content)
+		values
+		(#{boardCommentUser.userNo}, #{boardNo}, #{boardCommentContent})
+	</insert>
+
+	<update id="updateBoard" parameterType="boardDto">
+		update
+		board
+		set
+		board_title = #{boardTitle}
+		where
+		board_no = #{boardNo};
+
+		update
+		board_detail
+		set
+		board_content = #{boardContent}
+		where
+		board_no =
+		#{boardNo};
+
+		delete from
+		board_image
+		where
+		board_no = #{boardNo};
+
+		<if test="boardImages != null and boardImages.size() != 0">
+			insert into
+			board_image (board_no, board_image)
+			values
+			<foreach collection="boardImages" item="item" separator=" , ">
+				(#{boardNo}, #{item})
+			</foreach>
+		</if>
+	</update>
+
+	<update id="updateComment" parameterType="boardCommentDto">
+		update
+		board_comment
+		set
+		board_comment_content = #{boardCommentContent}
+		where
+		board_comment_no =
+		#{boardCommentNo};
+	</update>
+
+	<delete id="deleteBoard" parameterType="int">
+		delete from
+		board
+		where
+		board_no = #{boardNo};
+	</delete>
+
+	<delete id="deleteComment" parameterType="int">
+		delete from
+		board_comment
+		where
+		board_comment_no = #{boardCommentNo};
+	</delete>
+
+
+</mapper>

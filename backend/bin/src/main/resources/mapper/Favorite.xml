@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trip.favorite.mapper.FavoriteMapper">
+	<resultMap type="FavoriteDto" id="FavoriteAttraction">
+		<result column="contentid" property="contentid" />
+		<result column="like_time" property="favoriteTime" />
+		<result column="like_comment" property="favotiteComment" />
+	</resultMap>
+	
+	<resultMap type="FavoriteDto" id="FavoriteUser">
+		<result column="like_time" property="favoriteTime" />
+		<result column="like_comment" property="favotiteComment" />
+		<association property="userDto" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+		</association>
+	</resultMap>
+	
+	<select id="myFavoriteList" parameterType="int" resultMap="FavoriteAttraction">
+		select
+			contentid,
+			like_time,
+			like_comment
+		from
+			like_place
+		where
+			user_no = #{userNo}
+	</select>
+	
+	<select id="likeUserList" parameterType="int" resultMap="FavoriteUser">
+		select
+			user.user_no,
+			user_name,
+			like_time,
+			like_comment
+		from
+			like_place
+			inner join
+			user
+		on
+			user.user_no = like_place.user_no
+		where
+			contentid = #{contentid}
+	</select>
+	
+	<insert id="makeLike" parameterType="FavoriteDto">
+		insert into
+			like_place (user_no, contentid, like_comment)
+		values
+			(#{userDto.userNo}, #{contentid} #{favotiteComment})
+	</insert>
+	
+	<delete id="deleteLike" parameterType="map">
+		delete from
+			like_place
+		where
+			user_no = #{userNo}
+			and
+			contentid = #{contentid}
+	</delete>
+</mapper>

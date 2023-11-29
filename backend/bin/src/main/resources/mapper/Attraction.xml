@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trip.attraction.mapper.AttractionMapper">
+	<resultMap type="attractionDto" id="attractionSimple">
+		<result column="contentid" property="contentid" />
+		<result column="contenttypeid" property="contenttypeid" />
+		<result column="title" property="title" />
+		<result column="addr1" property="addr1" />
+		<result column="addr2" property="addr2" />
+		<result column="zipcode" property="zipcode" />
+		<result column="tel" property="tel" />
+		<result column="firstimage" property="firstimage" />
+		<result column="firstimage2" property="firstimage2" />
+		<result column="areacode" property="areacode" />
+		<result column="sigungucode" property="sigungucode" />
+		<result column="mapx" property="mapx" />
+		<result column="mapy" property="mapy" />
+		<result column="mlevel" property="mlevel" />
+		<association property="attractionUser" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+		</association>
+	</resultMap>
+
+	<resultMap type="attractionDto" id="attractionDetail">
+		<result column="contentid" property="contentid" />
+		<result column="contenttypeid" property="contenttypeid" />
+		<result column="title" property="title" />
+		<result column="addr1" property="addr1" />
+		<result column="addr2" property="addr2" />
+		<result column="zipcode" property="zipcode" />
+		<result column="tel" property="tel" />
+		<result column="firstimage" property="firstimage" />
+		<result column="firstimage2" property="firstimage2" />
+		<result column="areacode" property="areacode" />
+		<result column="sigungucode" property="sigungucode" />
+		<result column="mapx" property="mapx" />
+		<result column="mapy" property="mapy" />
+		<result column="mlevel" property="mlevel" />
+		<result column="homepage" property="homepage" />
+		<result column="overview" property="overview" />
+		<result column="telname" property="telname" />
+		<result column="cat1" property="cat1" />
+		<result column="cat2" property="cat2" />
+		<result column="cat3" property="cat3" />
+		<result column="createdtime" property="createdtime" />
+		<result column="modifiedtime" property="modifiedtime" />
+		<result column="booktour" property="booktour" />
+		<association property="attractionUser" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+		</association>
+	</resultMap>
+	
+	<resultMap type="attractionCommentDto" id="comment">
+		<result column="attraction_comment_no" property="attractionCommentNo" />
+		<result column="contentid" property="contentid" />
+		<result column="attraction_comment_content" property="attractionCommentContent" />
+		<result column="attraction_comment_time" property="attractionCommentTime" />
+		<association property="attractionCommentUser" javaType="UserDto">
+			<result column="user_no" property="userNo" />
+			<result column="user_id" property="userId" />
+			<result column="user_name" property="userName" />
+			<result column="user_profile" property="userProfile" />
+		</association>
+	</resultMap>
+	
+	<select id="getCommentList" resultMap="comment">
+		select 
+			attraction_comment_no,
+			contentid,
+			attraction_comment_content,
+			attraction_comment_time,
+			user.user_no,
+			user_id,
+			user_name,
+			user_profile
+		from 
+			attraction_comment
+		inner join 
+			user
+		on 
+			attraction_comment.user_no = user.user_no
+		where 
+			contentid = #{contentid}
+	</select>
+	
+	<select id="getAttractionComment" parameterType="int" resultMap="comment">
+		select 
+			attraction_comment_no,
+			contentid,
+			attraction_comment_content,
+			attraction_comment_time,
+			user.user_no,
+			user_id,
+			user_name,
+			user_profile
+		from 
+			attraction_comment
+		inner join 
+			user
+		on 
+			attraction_comment.user_no = user.user_no
+		where 
+			attraction_comment_no = #{attractionCommentNo}
+	</select>
+	
+	<select id="attractionList" parameterType="map" resultMap="attractionSimple">
+		select
+			contentid,
+			contenttypeid,
+			title,
+			addr1,
+			addr2,
+			zipcode,
+			tel,
+			firstimage,
+			firstimage2,
+			areacode,
+			sigungucode,
+			mapx,
+			mapy,
+			mlevel,
+			user.user_no,
+			user_id,
+			user_name,
+			user_profile
+		from
+			attraction_info
+		inner join
+			user
+		on
+			attraction_info.user_no = user.user_no
+		where
+			1 = 1
+			<if test="areacode != null and areacode != '' and areacode != 'null'">
+				and areacode = #{areacode}
+			</if> 			
+			<if test="sigungucode != null and sigungucode != '' and sigungucode != 'null'">
+				and sigungucode = #{sigungucode}
+			</if>
+			<if test="contenttypeid != null and contenttypeid != '' and contenttypeid != 'null'">
+				and contenttypeid = #{contenttypeid}
+			</if>
+			<if test="keyword != null and keyword != '' and keyword != 'null'">
+				and title like concat('%', #{keyword}, '%') or addr1 like concat('%', #{keyword}, '%') or addr2 like concat('%', #{keyword}, '%')
+			</if>
+	</select>
+	
+	<select id="attractionDetail" parameterType="map" resultMap="attractionDetail">
+		select
+			attraction_info.contentid,
+			contenttypeid,
+			title,
+			addr1,
+			addr2,
+			zipcode,
+			tel,
+			firstimage,
+			firstimage2,
+			areacode,
+			sigungucode,
+			mapx,
+			mapy,
+			mlevel,
+			user.user_no,
+			user_id,
+			user_name,
+			user_profile,
+			homepage,
+			overview,
+			telname,
+			cat1,
+			cat2,
+			cat3,
+			createdtime,
+			modifiedtime,
+			booktour
+		from
+			attraction_info
+		inner join
+			user
+		on
+			attraction_info.user_no = user.user_no
+		left outer join
+			attraction_detail_info
+		on
+			attraction_info.contentid = attraction_detail_info.contentid
+		left outer join
+			attraction_description
+		on
+			attraction_info.contentid = attraction_description.contentid
+		where
+			attraction_info.contentid = #{contentid}
+	</select>
+	
+	<insert id="createAttraction" parameterType="attractionDto" useGeneratedKeys="true" keyProperty="contentid">
+		insert into
+			attraction_info
+			(contenttypeid,
+			title,
+			addr1,
+			addr2,
+			zipcode,
+			tel,
+			firstimage,
+			firstimage2,
+			areacode,
+			sigungucode,
+			mapx,
+			mapy,
+			mlevel,
+			user_no)
+		values
+			(#{contenttypeid},
+			#{title},
+			#{addr1},
+			#{addr2},
+			#{zipcode},
+			#{tel},
+			#{firstimage},
+			#{firstimage2},
+			#{areacode},
+			#{sigungucode},
+			#{mapx},
+			#{mapy},
+			#{mlevel},
+			#{attractionUser.userNo})
+	</insert>
+	
+	<insert id="createAttractionDescription" parameterType="attractionDto">
+		insert into
+			attraction_description (contentid, homepage, overview, telname)
+		values
+			(#{contentid}, #{homepage}, #{overview}, #{telname})
+	</insert>
+	
+	<insert id="createAttractionDetailInfo" parameterType="attractionDto">
+		insert into
+			attraction_detail_info (contentid, cat1, cat2, cat3, booktour)
+		values
+			(#{contentid}, #{cat1}, #{cat2}, #{cat3}, #{booktour})
+	</insert>
+	
+	<update id="updateAttraction" parameterType="attractionDto">
+		update
+			attraction_info
+		set
+			contenttypeid = #{contenttypeid},
+			title = #{title},
+			addr1 = #{addr1},
+			addr2 = #{addr2},
+			zipcode = #{zipcode},
+			tel = #{tel},
+			firstimage = #{firstimage},
+			firstimage2 = #{firstimage2},
+			areacode = #{areacode},
+			sigungucode = #{sigungucode},
+			mapx = #{mapx},
+			mapy = #{mapy},
+			mlevel = #{mlevel}
+		where
+			contentid = #{contentid};
+		
+		update
+			attraction_detail_info
+		set
+			cat1 = #{cat1},
+			cat2 = #{cat2},
+			cat3 = #{cat3},
+			modifiedtime = now(),
+			booktour = #{booktour}
+		where
+			contentid = #{contentid};
+			
+		update
+			attraction_description
+		set
+			homepage = #{homepage},
+			overview = #{overview},
+			telname = #{telname}
+		where
+			contentid = #{contentid}
+	</update>
+	
+	<delete id="deleteAttraction" parameterType="int">
+<!-- 		delete from
+			attraction_comment
+		where
+			contentid = #{contentid};
+			
+		delete from
+			attraction_description
+		where
+			contentid = #{contentid};
+		
+		delete from
+			attraction_detail_info
+		where
+			contentid = #{contentid};
+			 -->
+		delete from
+			attraction_info
+		where
+			contentid = #{contentid};
+	</delete>
+	
+	<insert id="writeComment" parameterType="attractionCommentDto">
+		insert into 
+			attraction_comment (user_no, contentid, attraction_comment_content) 
+		values 
+			(#{attractionCommentUser.userNo}, #{contentid}, #{attractionCommentContent})
+	</insert>
+	
+	<update id="updateComment" parameterType="attractionCommentDto">
+		update
+			attraction_comment
+		set
+			attraction_comment_content = #{attractionCommentContent}
+		where
+			attraction_comment_no = #{attractionCommentNo}
+	</update>
+	
+	<delete id="deleteComment" parameterType="int">
+		delete from 
+			attraction_comment
+		where
+			attraction_comment_no = #{attractionCommentNo}
+	</delete>
+	
+	<select id="attractionCommentList" parameterType="int" resultMap="comment">
+		select 
+			attraction_comment_no,
+			contentid,
+			attraction_comment_content,
+			attraction_comment_time,
+			user.user_no,
+			user_id,
+			user_name,
+			user_profile
+		from 
+			attraction_comment
+		inner join 
+			user
+		on 
+			attraction_comment.user_no = user.user_no
+		where 
+			contentid = #{contentid} 
+	 </select>
+</mapper>
